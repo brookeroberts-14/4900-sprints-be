@@ -16,7 +16,6 @@ class League(models.Model):
         ACTIVE = "a", "Active"
         PENDING = "p", "Pending"
         ENDED = "e", "Ended"
-
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     format = models.ForeignKey(Format, on_delete=models.PROTECT)
     name = models.CharField(max_length=100, unique=True)
