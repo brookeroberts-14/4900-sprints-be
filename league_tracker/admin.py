@@ -4,7 +4,7 @@ from .models import Format, League, Deck, League_Player, Match, Match_Player_Det
 class FormatList(admin.ModelAdmin):
     list_display = ('pk', 'name', 'players_per_match', 'rounds_per_match')
     list_filter = ('name', 'players_per_match', 'rounds_per_match')
-    search_fields = 'name'
+    search_fields = ('name',)
     ordering = ['name']
 
 class LeagueList(admin.ModelAdmin):
