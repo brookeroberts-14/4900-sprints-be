@@ -16,7 +16,10 @@ class FormatSerializer(serializers.ModelSerializer):
         fields = ('pk', 'name', 'players_per_match', 'rounds_per_match')
 
 class LeagueSerializer(serializers.ModelSerializer):
+    # 1. Define custom fields at the top of the class
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    format = FormatSerializer(read_only=True) # 'format' field is nested
+
     class Meta:
         model = League
         fields = ('pk', 'owner', 'format', 'name', 'status', 'status_display', 'decks_per_user', 'start_date',
@@ -33,6 +36,7 @@ class LeaguePlayerSerializer(serializers.ModelSerializer):
 class DeckSerializer(serializers.ModelSerializer):
     player_username = serializers.ReadOnlyField(source='player.username')
     league_name = serializers.ReadOnlyField(source='league.name')
+    league_player = LeaguePlayerSerializer(read_only=True) # league_player is nested
 
     class Meta:
         model = Deck
