@@ -97,6 +97,36 @@ def match_player_details(request):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['GET', 'POST'])
+def match_rounds(request):
+    if request.method == 'GET':
+        match_rounds = Match_Round.objects.all()
+        serializer = MatchRoundSerializer(match_rounds, context={'request': request}, many=True)
+        return Response({'data': serializer.data})
+
+    elif request.method == 'POST':
+        serializer = MatchRoundSerializer(data=request.data)
+        if serializer.is_valid():
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'POST'])
+def match_round_players(request):
+    if request.method == 'GET':
+        match_round_players = Match_Round_Player.objects.all()
+        serializer = MatchRoundPlayerSerializer(match_round_players, context={'request': request}, many=True)
+        return Response({'data': serializer.data})
+
+    elif request.method == 'POST':
+        serializer = MatchRoundPlayerSerializer(data=request.data)
+        if serializer.is_valid():
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 @api_view(['GET', 'PUT', 'DELETE'])
 def getLeague(request, pk):
     #Retrieve, update or delete a league instance.
@@ -225,4 +255,46 @@ def getMatchPlayerDetail(request, pk):
 
     elif request.method == 'DELETE':
         match_player_details.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET', 'POST', 'DELETE'])
+def getMatchRoundDetail(request, pk):
+    try:
+        match_rounds = Match_Round.objects.get(pk=pk)
+    except Match_Round.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = MatchRoundSerializer(match_rounds, context={'request': request})
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = MatchRoundSerializer(match_rounds, data=request.data,context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    elif request.method == 'DELETE':
+        match_rounds.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET', 'POST', 'DELETE'])
+def getMatchRoundPlayerDetail(request, pk):
+    try:
+        match_round_players = Match_Round_Player.objects.get(pk=pk)
+    except Match_Round_Player.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = MatchRoundPlayerSerializer(match_round_players, context={'request': request})
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = MatchRoundPlayerSerializer(match_round_players, data=request.data,context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    elif request.method == 'DELETE':
+        match_round_players.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
