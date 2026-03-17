@@ -14,7 +14,7 @@ urlpatterns = [
     path('league_tracker/league_player/<int:pk>', views.getLeaguePlayer),
     path('league_tracker/matches/', views.matches),
     path('league_tracker/match/<int:pk>', views.getMatches),
-    path('league_tracker/match_player/', views.match_player_details),
+    path('league_tracker/match_players/', views.match_player_details),
     path('league_tracker/match_player/<int:pk>/', views.getMatchPlayerDetail),
     path('league_tracker/match_rounds/', views.match_rounds),
     path('league_tracker/match_round/<int:pk>', views.getMatchRoundDetail),

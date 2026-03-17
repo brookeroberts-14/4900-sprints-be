@@ -56,7 +56,7 @@ def league_players(request):
     # Retrieve or Update League Players
     if request.method == 'GET':
         league_players = League_Player.objects.all()
-        serializer = LeaguePlayerSerializer(league_players, context={'request': request})
+        serializer = LeaguePlayerSerializer(league_players, context={'request': request}, many=True)
         return Response({'data': serializer.data})
 
     elif request.method == 'POST':

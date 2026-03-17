@@ -24,14 +24,16 @@ class LeagueSerializer(serializers.ModelSerializer):
         model = League
         fields = ('pk', 'owner', 'format', 'name', 'status', 'status_display', 'decks_per_user', 'start_date',
                   'end_date', 'match_qty', 'points_win', 'points_loss', 'points_draw')
-        read_only_fields = ('owner', 'status')
+        read_only_fields = ('owner', 'status',)
 
 class LeaguePlayerSerializer(serializers.ModelSerializer):
+    league_name = serializers.ReadOnlyField(source='league.name')
+    player_name = serializers.ReadOnlyField(source='player.username')
     format = serializers.StringRelatedField(read_only=True)
     class Meta:
         model = League_Player
-        fields = ('pk', 'league', 'league_name', 'player', 'player_name', 'league_player_points')
-        read_only_fields = ('league_player_points')
+        fields = ('pk', 'league', 'format', 'league_name', 'player', 'player_name', 'league_player_points')
+        read_only_fields = ('league_player_points',)
 
 class DeckSerializer(serializers.ModelSerializer):
     player_username = serializers.ReadOnlyField(source='player.username')
