@@ -10,6 +10,17 @@ def league_list(request):
     if request.method == 'GET':
         leagues = League.objects.all()
         serializer = LeagueSerializer(leagues, context={'request': request}, many=True)
+
+
+
+
+
+
+
+
+
+
+
         return Response({'data': serializer.data})
 
     elif request.method == 'POST':
