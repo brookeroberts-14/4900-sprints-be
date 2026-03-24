@@ -10,19 +10,7 @@ def league_list(request):
     if request.method == 'GET':
         leagues = League.objects.all()
         serializer = LeagueSerializer(leagues, context={'request': request}, many=True)
-
-
-
-
-
-
-
-
-
-
-
         return Response({'data': serializer.data})
-
     elif request.method == 'POST':
         serializer = LeagueSerializer(data=request.data)
         if serializer.is_valid():
@@ -309,3 +297,9 @@ def getMatchRoundPlayerDetail(request, pk):
     elif request.method == 'DELETE':
         match_round_players.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class RegisterView(generics.CreateAPIView):
+    #Register a new user - requester need not be authorized
+    queryset = User.objects.all()
+    permission_classes = (AllowAny,)
+    serializer_class = RegisterSerializer
