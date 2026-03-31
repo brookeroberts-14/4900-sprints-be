@@ -25,6 +25,8 @@ from league_tracker import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth', include('rest_framework.urls')),
+    path('api/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('', include('league_tracker.urls')),
     path('register/', views.RegisterView.as_view(), name='auth_register'),
 ]
