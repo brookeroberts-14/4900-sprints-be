@@ -53,7 +53,9 @@ class FormatSerializer(serializers.ModelSerializer):
 class LeagueSerializer(serializers.ModelSerializer):
     # 1. Define custom fields at the top of the class
     status_display = serializers.CharField(source='get_status_display', read_only=True)
-    format = FormatSerializer(read_only=True) # 'format' field is nested
+    #I had to change how format was read for the league creation on the FE. Setting it to read-only made it so new
+    #leagues couldn't set their format which gave a 500 error.
+    format = serializers.PrimaryKeyRelatedField(queryset=Format.objects.all())
 
     class Meta:
         model = League

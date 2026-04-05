@@ -14,7 +14,9 @@ def league_list(request):
     elif request.method == 'POST':
         serializer = LeagueSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            #had to change this save function to set the owner because I was getting another 500 error bc owner wasn't
+            #set
+            serializer.save(owner=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
