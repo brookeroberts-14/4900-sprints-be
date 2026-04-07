@@ -109,27 +109,27 @@ class MatchPlayerDetailSerializer(serializers.ModelSerializer):
         model = Match_Player_Detail
         fields = ('pk', 'match', 'league_player', 'player_name', 'deck', 'deck_name')
 
-        def validate(self, data):
-            ## I replicated the model's clean() logic for the API.
-            match = data.get('match')
-            league_player = data.get('league_player')
-            deck = data.get('deck')
+    def validate(self, data):
+        ## I replicated the model's clean() logic for the API.
+        match = data.get('match')
+        league_player = data.get('league_player')
+        deck = data.get('deck')
 
-            # 1. Ensure the Player is actually enrolled in the League this Match belongs to
-            if match and league_player:
-                if match.league_id != league_player.league_id:
-                    raise serializers.ValidationError(
-                        {"league_player": "This player is not enrolled in this match's league."}
-                    )
+        # 1. Ensure the Player is actually enrolled in the League this Match belongs to
+        if match and league_player:
+            if match.league_id != league_player.league_id:
+                raise serializers.ValidationError(
+                    {"league_player": "This player is not enrolled in this match's league."}
+                )
 
-            # 2. Ensure the selected Deck actually belongs to this League Player
-            if deck and league_player:
-                if deck.league_player_id != league_player.id:
-                    raise serializers.ValidationError(
-                        {"deck": "This deck does not belong to the selected player."}
-                    )
+        # 2. Ensure the selected Deck actually belongs to this League Player
+        if deck and league_player:
+            if deck.league_player_id != league_player.id:
+                raise serializers.ValidationError(
+                    {"deck": "This deck does not belong to the selected player."}
+                )
 
-            return data
+        return data
 
 class MatchRoundSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)

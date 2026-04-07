@@ -168,24 +168,24 @@ def getLeague(request, pk):
 @api_view(['GET', 'POST', 'DELETE'])
 def getDeck(request, pk):
     #Retrieve, update, or delete a deck instance
-        try:
-            deck = Deck.objects.get(pk=pk)
-        except Deck.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+    try:
+        deck = Deck.objects.get(pk=pk)
+    except Deck.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if request.method == 'GET':
-            serializer = DeckSerializer(deck, context={'request': request})
-            return Response(serializer.data)
+    if request.method == 'GET':
+        serializer = DeckSerializer(deck, context={'request': request})
+        return Response(serializer.data)
 
-        elif request.method == 'POST':
-            serializer = DeckSerializer(deck, data=request.data,context={'request': request})
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+    elif request.method == 'POST':
+        serializer = DeckSerializer(deck, data=request.data,context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        elif request.method == 'DELETE':
-            deck.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+    elif request.method == 'DELETE':
+        deck.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET', 'POST', 'DELETE'])
 def getFormat(request, pk):
@@ -256,7 +256,7 @@ def getMatches(request, pk):
 def getMatchPlayerDetail(request, pk):
     try:
         match_player_details = Match_Player_Detail.objects.get(pk=pk)
-    except Match.DoesNotExist:
+    except Match_Player_Detail.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
