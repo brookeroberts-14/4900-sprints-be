@@ -54,19 +54,33 @@ def formats(request):
 
 @api_view(['GET', 'POST'])
 def league_players(request):
-    # Retrieve or Update League Players
     if request.method == 'GET':
         league_players = League_Player.objects.all()
-        serializer = LeaguePlayerSerializer(league_players, context={'request': request}, many=True)
+        serializer = LeaguePlayerSerializer(league_players, many=True)
         return Response({'data': serializer.data})
 
     elif request.method == 'POST':
-        serializer = LeaguePlayerSerializer(data=request.data)
-        if serializer.is_valid():
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        league_id = request.data.get('league')
+        player_input = request.data.get('player')
+
+        try:
+            if player_input and not str(player_input).isdigit():
+                target_user = User.objects.get(username=player_input)
+            else:
+                target_user = request.user
+
+            obj, created = League_Player.objects.get_or_create(
+                league_id=league_id,
+                player=target_user
+            )
+
+            serializer = LeaguePlayerSerializer(obj)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        except User.DoesNotExist:
+            return Response({"detail": f"User '{player_input}' not found."}, status=404)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=400)
 
 @api_view(['GET', 'POST'])
 def matches(request):
@@ -211,6 +225,7 @@ def getLeaguePlayer(request, pk):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
         league_players.delete()
