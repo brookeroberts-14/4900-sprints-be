@@ -55,11 +55,12 @@ class LeagueSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     #I had to change how format was read for the league creation on the FE. Setting it to read-only made it so new
     #leagues couldn't set their format which gave a 500 error.
-    format = serializers.PrimaryKeyRelatedField(queryset=Format.objects.all())
+    format = serializers.PrimaryKeyRelatedField(queryset=Format.objects.all(),write_only=True)
+    format_details = FormatSerializer(source='format', read_only=True)
 
     class Meta:
         model = League
-        fields = ('pk', 'owner', 'format', 'name', 'status', 'status_display', 'decks_per_user', 'start_date',
+        fields = ('pk', 'owner', 'format', 'format_details', 'name', 'status', 'status_display', 'decks_per_user', 'start_date',
                   'end_date', 'match_qty', 'points_win', 'points_loss', 'points_draw')
         read_only_fields = ('owner', 'status',)
 
@@ -72,31 +73,32 @@ class LeaguePlayerSerializer(serializers.ModelSerializer):
         fields = ('pk', 'league', 'format', 'league_name', 'player', 'player_name', 'league_player_points')
         read_only_fields = ('league_player_points',)
 
+
 class DeckSerializer(serializers.ModelSerializer):
-    player_username = serializers.ReadOnlyField(source='player.username')
-    league_name = serializers.ReadOnlyField(source='league.name')
-    league_player = LeaguePlayerSerializer(read_only=True) # league_player is nested
+    player_name = serializers.ReadOnlyField(source='league_player.player.username')
+    league_id = serializers.ReadOnlyField(source='league_player.league.id')
+
+    league_player = serializers.PrimaryKeyRelatedField(queryset=League_Player.objects.all())
 
     class Meta:
         model = Deck
-        fields = ('pk', 'league_player', 'name', 'url', 'player_username', 'league_name')
+        fields = ('pk', 'league_player', 'name', 'url', 'player_name', 'league_id')
 
     def validate(self, data):
-        ##Check that the player hasn't exceeded the deck limit for this league.
         league_player = data.get('league_player')
 
-        # Access the limit through the ForeignKey chain: League_Player -> League
+        if not league_player:
+            raise serializers.ValidationError("League player is required.")
+
         limit = league_player.league.decks_per_user
 
-        # Count existing decks for this player in this league
-        # If we are updating an existing deck, we exclude it from the count
         existing_count = Deck.objects.filter(league_player=league_player)
         if self.instance:
             existing_count = existing_count.exclude(pk=self.instance.pk)
 
         if existing_count.count() >= limit:
             raise serializers.ValidationError(
-                f"Deck limit reached ({limit}) for this league."
+                f"Deck limit reached ({limit}) for this player in this league."
             )
 
         return data
