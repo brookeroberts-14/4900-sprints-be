@@ -137,10 +137,10 @@ def match_round_players(request):
     elif request.method == 'POST':
         serializer = MatchRoundPlayerSerializer(data=request.data)
         if serializer.is_valid():
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def getLeague(request, pk):

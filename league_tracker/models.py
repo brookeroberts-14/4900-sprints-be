@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db.models import Sum
+
 
 class Format(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -157,6 +159,23 @@ class Match_Round_Player(models.Model):
             self.points = league.points_loss
         super().save(*args, **kwargs)
 
+        #updating the total points for leaderboard
+        league_player = self.player.league_player
+        total_points = Match_Round_Player.objects.filter(
+            player__league_player=league_player
+        ).aggregate(total_points=Sum('points'))['total_points'] or 0
+
+        league_player.league_player_points = total_points
+        league_player.save(update_fields=['league_player_points'])
+
+        #update the round status
+        total_players = self.round.match.participants.count()
+        total_results = self.round.results.count()
+        if total_results >= total_players:
+            self.round.status = Match_Round.Status.COMPLETED
+        else:
+            self.round.status = Match_Round.Status.PENDING
+        self.round.save(update_fields=["status"])
     def clean(self):
         # Just makes sure that player belongs to the same match & round.
         if self.round_id and self.player_id:
