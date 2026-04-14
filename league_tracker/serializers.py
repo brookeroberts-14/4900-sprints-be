@@ -105,26 +105,24 @@ class DeckSerializer(serializers.ModelSerializer):
 
 class MatchPlayerDetailSerializer(serializers.ModelSerializer):
     player_name = serializers.ReadOnlyField(source='league_player.player.username')
+    player_username = serializers.ReadOnlyField(source='league_player.player.username')
     deck_name = serializers.ReadOnlyField(source='deck.name')
 
     class Meta:
         model = Match_Player_Detail
-        fields = ('pk', 'match', 'league_player', 'player_name', 'deck', 'deck_name')
+        fields = ('pk', 'match', 'league_player', 'player_name', 'player_username', 'deck', 'deck_name')
 
     def validate(self, data):
-        ## I replicated the model's clean() logic for the API.
         match = data.get('match')
         league_player = data.get('league_player')
         deck = data.get('deck')
 
-        # 1. Ensure the Player is actually enrolled in the League this Match belongs to
         if match and league_player:
             if match.league_id != league_player.league_id:
                 raise serializers.ValidationError(
                     {"league_player": "This player is not enrolled in this match's league."}
                 )
 
-        # 2. Ensure the selected Deck actually belongs to this League Player
         if deck and league_player:
             if deck.league_player_id != league_player.id:
                 raise serializers.ValidationError(
