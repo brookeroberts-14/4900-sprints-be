@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from .models import Format, League, League_Player, Deck, Match, Match_Player_Detail, Match_Round, Match_Round_Player
 from django.contrib.auth.password_validation import validate_password
+from urllib.parse import urlparse
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
@@ -85,7 +86,8 @@ class DeckSerializer(serializers.ModelSerializer):
         fields = ('pk', 'league_player', 'name', 'url', 'player_name', 'league_id')
 
     def validate(self, data):
-        league_player = data.get('league_player')
+        league_player = data.get('league_player') or getattr(self.instance, 'league_player', None)
+        url = data.get('url', getattr(self.instance, 'url', ''))
 
         if not league_player:
             raise serializers.ValidationError("League player is required.")
@@ -100,6 +102,30 @@ class DeckSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 f"Deck limit reached ({limit}) for this player in this league."
             )
+            # prevent name changes after creation
+        if self.instance and 'name' in data and data['name'] != self.instance.name:
+            raise serializers.ValidationError({
+                    "name": "Deck name cannot be changed after creation."
+            })
+            # prevent owner/player changes after creation
+        if self.instance and 'league_player' in data and data['league_player'] != self.instance.league_player:
+            raise serializers.ValidationError({
+                "league_player": "Deck owner cannot be changed after creation."
+            })
+            # allow only Moxfield URLs
+        if url:
+            parsed = urlparse(url)
+            allowed_hosts = {'moxfield.com', 'www.moxfield.com'}
+
+            if parsed.scheme != 'https':
+                raise serializers.ValidationError({
+                    "url": "Deck URL must use https."
+                })
+
+            if parsed.netloc not in allowed_hosts:
+                raise serializers.ValidationError({
+                    "url": "Deck URL must be a valid Moxfield link."
+                })
 
         return data
 

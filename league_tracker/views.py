@@ -165,7 +165,7 @@ def getLeague(request, pk):
         league.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-@api_view(['GET', 'POST', 'DELETE'])
+@api_view(['GET', 'PUT', 'DELETE'])
 def getDeck(request, pk):
     #Retrieve, update, or delete a deck instance
     try:
@@ -177,11 +177,12 @@ def getDeck(request, pk):
         serializer = DeckSerializer(deck, context={'request': request})
         return Response(serializer.data)
 
-    elif request.method == 'POST':
+    elif request.method == 'PUT':
         serializer = DeckSerializer(deck, data=request.data,context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
         deck.delete()
