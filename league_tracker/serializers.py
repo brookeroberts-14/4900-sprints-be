@@ -80,7 +80,7 @@ class LeagueSerializer(serializers.ModelSerializer):
         return "a"
 
     def get_status_display(self, obj):
-        today = timezone.now()
+        now = timezone.now()
 
         if obj.start_date and now < obj.start_date:
             return "Pending"
