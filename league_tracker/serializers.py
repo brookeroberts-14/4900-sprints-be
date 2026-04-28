@@ -71,20 +71,20 @@ class LeagueSerializer(serializers.ModelSerializer):
         read_only_fields = ('owner',)
 
     def get_status(self, obj):
-        today = timezone.now().date()
+        now = timezone.now()
 
-        if obj.start_date and today < obj.start_date:
-            return "p"   # Pending
-        elif obj.end_date and today > obj.end_date:
-            return "c"   # Completed
-        return "a"       # Active
+        if obj.start_date and now < obj.start_date:
+            return "p"
+        elif obj.end_date and now > obj.end_date:
+            return "c"
+        return "a"
 
     def get_status_display(self, obj):
-        today = timezone.now().date()
+        today = timezone.now()
 
-        if obj.start_date and today < obj.start_date:
+        if obj.start_date and now < obj.start_date:
             return "Pending"
-        elif obj.end_date and today > obj.end_date:
+        elif obj.end_date and now > obj.end_date:
             return "Completed"
         return "Active"
 
