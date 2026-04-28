@@ -4,6 +4,8 @@ from django.contrib.auth.password_validation import validate_password
 from urllib.parse import urlparse
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+from django.utils import timezone
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
@@ -52,18 +54,39 @@ class FormatSerializer(serializers.ModelSerializer):
         fields = ('pk', 'name', 'players_per_match', 'rounds_per_match')
 
 class LeagueSerializer(serializers.ModelSerializer):
-    # 1. Define custom fields at the top of the class
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
-    #I had to change how format was read for the league creation on the FE. Setting it to read-only made it so new
-    #leagues couldn't set their format which gave a 500 error.
-    format = serializers.PrimaryKeyRelatedField(queryset=Format.objects.all(),write_only=True)
+    status = serializers.SerializerMethodField()
+    status_display = serializers.SerializerMethodField()
+
+    format = serializers.PrimaryKeyRelatedField(queryset=Format.objects.all(), write_only=True)
     format_details = FormatSerializer(source='format', read_only=True)
 
     class Meta:
         model = League
-        fields = ('pk', 'owner', 'format', 'format_details', 'name', 'status', 'status_display', 'decks_per_user', 'start_date',
-                  'end_date', 'match_qty', 'points_win', 'points_loss', 'points_draw')
-        read_only_fields = ('owner', 'status',)
+        fields = (
+            'pk', 'owner', 'format', 'format_details', 'name',
+            'status', 'status_display', 'decks_per_user',
+            'start_date', 'end_date', 'match_qty',
+            'points_win', 'points_loss', 'points_draw'
+        )
+        read_only_fields = ('owner',)
+
+    def get_status(self, obj):
+        today = timezone.now().date()
+
+        if obj.start_date and today < obj.start_date:
+            return "p"   # Pending
+        elif obj.end_date and today > obj.end_date:
+            return "c"   # Completed
+        return "a"       # Active
+
+    def get_status_display(self, obj):
+        today = timezone.now().date()
+
+        if obj.start_date and today < obj.start_date:
+            return "Pending"
+        elif obj.end_date and today > obj.end_date:
+            return "Completed"
+        return "Active"
 
 class LeaguePlayerSerializer(serializers.ModelSerializer):
     league_name = serializers.ReadOnlyField(source='league.name')
