@@ -54,8 +54,8 @@ class FormatSerializer(serializers.ModelSerializer):
         fields = ('pk', 'name', 'players_per_match', 'rounds_per_match')
 
 class LeagueSerializer(serializers.ModelSerializer):
-    status = serializers.SerializerMethodField()
-    status_display = serializers.SerializerMethodField()
+    status = serializers.ReadOnlyField(source='computed_status')
+    status_display = serializers.ReadOnlyField(source='computed_status_display')
 
     format = serializers.PrimaryKeyRelatedField(queryset=Format.objects.all(), write_only=True)
     format_details = FormatSerializer(source='format', read_only=True)
@@ -74,19 +74,27 @@ class LeagueSerializer(serializers.ModelSerializer):
         now = timezone.now()
 
         if obj.start_date and now < obj.start_date:
-            return "p"
+            result = "p"
         elif obj.end_date and now > obj.end_date:
-            return "c"
-        return "a"
+            result = "c"
+        else:
+            result = "a"
+
+        print("DEBUG LEAGUE STATUS:", obj.name, "=>", result)
+        return result
 
     def get_status_display(self, obj):
         now = timezone.now()
 
         if obj.start_date and now < obj.start_date:
-            return "Pending"
+            result = "Pending"
         elif obj.end_date and now > obj.end_date:
-            return "Completed"
-        return "Active"
+            result = "Completed"
+        else:
+            result = "Active"
+
+        print("DEBUG LEAGUE DISPLAY:", obj.name, "=>", result)
+        return result
 
 class LeaguePlayerSerializer(serializers.ModelSerializer):
     league_name = serializers.ReadOnlyField(source='league.name')

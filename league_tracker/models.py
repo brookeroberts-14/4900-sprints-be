@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
+from django.utils import timezone
 
 
 class Format(models.Model):
@@ -30,8 +31,21 @@ class League(models.Model):
     points_loss = models.PositiveIntegerField(default=0)
     points_draw = models.PositiveIntegerField(default=1)
 
+    @property
+    def computed_status(self):
+        now = timezone.now()
+
+        if self.start_date and now < self.start_date:
+            return self.Status.PENDING
+        elif self.end_date and now > self.end_date:
+            return self.Status.ENDED
+        return self.Status.ACTIVE
     def __str__(self):
         return self.name
+
+    @property
+    def computed_status_display(self):
+        return dict(self.Status.choices).get(self.computed_status)
 
 
 class League_Player(models.Model):
