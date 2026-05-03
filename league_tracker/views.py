@@ -90,12 +90,50 @@ def matches(request):
         return Response({'data': serializer.data})
 
     elif request.method == 'POST':
+        league_id = request.data.get('league')
+        match_number = request.data.get('number')
+
+        try:
+            league = League.objects.get(pk=league_id)
+        except League.DoesNotExist:
+            return Response(
+                {"league": "Valid league is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        current_match_count = Match.objects.filter(league=league).count()
+
+        #Enforcing match_qty to limit the amount of matches
+        if league.match_qty > 0 and current_match_count >= league.match_qty:
+            return Response(
+                {
+                    "detail": f"This league already has the maximum number of matches allowed ({league.match_qty})."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        #Prevents the creation of a match #6 in a league with match_qty = 5
+        if league.match_qty > 0 and match_number:
+            try:
+                if int(match_number) > league.match_qty:
+                    return Response(
+                        {
+                            "number": f"Match number cannot be greater than this league's match quantity ({league.match_qty})."
+                        },
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            except ValueError:
+                return Response(
+                    {"number": "Match number must be a valid number."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
         serializer = MatchSerializer(data=request.data)
         if serializer.is_valid():
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'POST'])
 def match_player_details(request):
