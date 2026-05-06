@@ -29,10 +29,18 @@ def decks(request):
         return Response({'data': serializer.data})
 
     elif request.method == 'POST':
+        league_player_id = request.data.get('league_player')
+
+        league_player = League_Player.objects.get(pk=league_player_id)
+        league = league_player.league
+
+        if league.status == League.Status.ACTIVE:
+            return Response(
+                {"detail": "You cannot add decks after the league becomes active."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         serializer = DeckSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -63,6 +71,13 @@ def league_players(request):
         league_id = request.data.get('league')
         player_input = request.data.get('player')
 
+        league = League.objects.get(pk=league_id)
+
+        if league.status == League.Status.ACTIVE:
+            return Response(
+                {"detail": "You cannot join a league once it is active."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         try:
             if player_input and not str(player_input).isdigit():
                 target_user = User.objects.get(username=player_input)
@@ -216,10 +231,18 @@ def getDeck(request, pk):
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        serializer = DeckSerializer(deck, data=request.data,context={'request': request})
+        if deck.league_player.league.status == League.Status.ACTIVE:
+            return Response(
+                {"detail": "You cannot edit decks after the league becomes active."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = DeckSerializer(deck, data=request.data, context={'request': request})
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
