@@ -47,7 +47,14 @@ def decks(request):
     elif request.method == 'POST':
         league_player_id = request.data.get('league_player')
 
-        league_player = League_Player.objects.get(pk=league_player_id)
+        try:
+            league_player = League_Player.objects.get(pk=league_player_id)
+        except League_Player.DoesNotExist:
+            return Response(
+                {"detail": "League player not found."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         league = league_player.league
 
         if league.status == League.Status.ACTIVE:
@@ -57,6 +64,10 @@ def decks(request):
             )
 
         serializer = DeckSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
