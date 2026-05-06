@@ -21,6 +21,22 @@ def league_list(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['POST'])
+#to fix join button
+def join_league(request, pk):
+    league = League.objects.get(pk=pk)
+    league_player, created = League_Player.objects.get_or_create(
+        league=league,
+        player=request.user,
+        defaults={
+            'player_name': request.user.username
+        }
+    )
+    if not created:
+        return Response({'detail': 'Already joined'}, status=400)
+
+    return Response({'detail': 'Joined successfully'}, status=201)
+
 @api_view(['GET', 'POST'])
 def decks(request):
     if request.method == 'GET':
@@ -382,3 +398,4 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = (AllowAny,)
     serializer_class = RegisterSerializer
+
