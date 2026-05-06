@@ -126,6 +126,7 @@ class DeckSerializer(serializers.ModelSerializer):
         limit = league_player.league.decks_per_user
 
         existing_count = Deck.objects.filter(league_player=league_player)
+
         if self.instance:
             existing_count = existing_count.exclude(pk=self.instance.pk)
 
@@ -133,34 +134,22 @@ class DeckSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 f"Deck limit reached ({limit}) for this player in this league."
             )
-            # prevent name changes after creation
+
         if self.instance and 'name' in data and data['name'] != self.instance.name:
             raise serializers.ValidationError({
-                    "name": "Deck name cannot be changed after creation."
+                "name": "Deck name cannot be changed after creation."
             })
-            # prevent owner/player changes after creation
+
         if self.instance and 'league_player' in data and data['league_player'] != self.instance.league_player:
             raise serializers.ValidationError({
                 "league_player": "Deck owner cannot be changed after creation."
             })
-            # allow only Moxfield URLs
+
         if url:
-            parsed = urlparse(url)
-            allowed_hosts = {'moxfield.com', 'www.moxfield.com'}
-
-            if parsed.scheme != 'https':
+            if not url.startswith("https://moxfield.com/decks/") and not url.startswith(
+                    "https://www.moxfield.com/decks/"):
                 raise serializers.ValidationError({
-                    "url": "Deck URL must use https."
-                })
-
-            if parsed.netloc not in allowed_hosts:
-                raise serializers.ValidationError({
-                    "url": "Deck URL must be a valid Moxfield link."
-                })
-
-            if not parsed.path.startswith('/decks/'):
-                raise serializers.ValidationError({
-                    "url": "URL must be a Moxfield deck link."
+                    "url": "Deck URL must be a valid Moxfield deck link."
                 })
 
         return data
