@@ -158,6 +158,11 @@ class DeckSerializer(serializers.ModelSerializer):
                     "url": "Deck URL must be a valid Moxfield link."
                 })
 
+            if not parsed.path.startswith('/decks/'):
+                raise serializers.ValidationError({
+                    "url": "URL must be a Moxfield deck link."
+                })
+
         return data
 
 class MatchPlayerDetailSerializer(serializers.ModelSerializer):
