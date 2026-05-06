@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view
 from .serializers import *
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
+from django.utils import timezone
 
 @api_view(['GET', 'POST'])
 def league_list(request):
@@ -55,9 +56,9 @@ def decks(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        league = league_player.league
+        now = timezone.now()
 
-        if league.status == League.Status.ACTIVE:
+        if league.start_date <= now <= league.end_date:
             return Response(
                 {"detail": "You cannot add decks after the league becomes active."},
                 status=status.HTTP_400_BAD_REQUEST
@@ -258,9 +259,11 @@ def getDeck(request, pk):
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        if deck.league_player.league.status == League.Status.ACTIVE:
+        now = timezone.now()
+
+        if league.start_date <= now <= league.end_date:
             return Response(
-                {"detail": "You cannot edit decks after the league becomes active."},
+                {"detail": "You cannot add decks after the league becomes active."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
