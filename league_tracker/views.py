@@ -57,7 +57,7 @@ def decks(request):
             )
 
         now = timezone.now()
-
+        league = league_player.league
         if league.start_date <= now <= league.end_date:
             return Response(
                 {"detail": "You cannot add decks after the league becomes active."},
@@ -259,8 +259,8 @@ def getDeck(request, pk):
         return Response(serializer.data)
 
     elif request.method == 'PUT':
+        league = deck.league_player.league
         now = timezone.now()
-
         if league.start_date <= now <= league.end_date:
             return Response(
                 {"detail": "You cannot add decks after the league becomes active."},
